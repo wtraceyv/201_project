@@ -24,7 +24,7 @@ $searchQuery = $_SESSION['searchQuery'];
    <!-- Bootstrap CSS -->
    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
       integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-   <link rel="stylesheet" href="./mainCSS.css">
+   <link rel="stylesheet" href="../css/mainCSS.css">
 
    <title>Search Result</title>
 </head>
@@ -52,8 +52,13 @@ $searchQuery = $_SESSION['searchQuery'];
          </ul>
       </div>
    </nav>
-   <p class="words">You searched <?php echo $searchQuery ?></p>
-   
+   <div class="search">
+      <form action="./search_backend.php" method="post" class="form-inline">
+         <input class="form-control mr-sm-2" type="text" placeholder="You searched <?php echo $searchQuery ?>" aria-label="Search"
+            name="searchQuery">
+         <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
+      </form>
+   </div>
    
    <!-- Optional JavaScript -->
    <!-- jQuery first, then Popper.js, then Bootstrap JS -->

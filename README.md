@@ -2,11 +2,14 @@
 
 #### Here is where we store the code 
 
-##### search_backend.py
-Give results using Miami's Apache CGI with python backend
+##### css/
+Extra non-bootstrap CSS files for overriding theme colors, etc. 
 
-##### mainCSS.css
-Extra non-bootstrap CSS for overriding theme colors, etc. 
+##### codes/
+Both of the backend (PHP) and frontend (JS) code for search, display, etc
+
+##### images/
+The images files, such as icons
 
 ##### mainPage.html
 Main search page html 

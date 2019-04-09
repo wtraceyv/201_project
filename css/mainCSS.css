@@ -3,15 +3,16 @@ body {
   height: 100%;
 }
 
-.titleLogo {
-  text-align: center;
-}
 
 .mainSearch {
   margin: 0 auto;
   display: inline-block;
   text-align: center;
   width: 600px;
+}
+
+.search {
+  margin-left: 20px;
 }
 
 .words {

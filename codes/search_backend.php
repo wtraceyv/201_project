@@ -1,7 +1,21 @@
-<!-- Author: 201 project team -->
+<?php
+
+session_start(); //create a session
+
+//YOU WILL PUT YOUR FORM HANDLING CODE HERE
+if(isset($_POST['searchQuery'])){
+  $_SESSION['searchQuery'] = htmlspecialchars($_POST['searchQuery']);
+}
+if(!isset($_SESSION['searchQuery'])){
+  $_SESSION['searchQuery'] = "";
+}
+$searchQuery = $_SESSION['searchQuery'];
+
+?>
+
+
 <!doctype html>
 <html lang="en">
-
 <head>
    <!-- Required meta tags -->
    <meta charset="utf-8">
@@ -10,16 +24,15 @@
    <!-- Bootstrap CSS -->
    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
       integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-   <link rel="stylesheet" href="./css/mainCSS.css">
-   <link rel="shortcut icon" href="./images/logo.ico">
-   <title>Home</title>
+   <link rel="stylesheet" href="../css/mainCSS.css">
+   <link rel="shortcut icon" href="../images/logo.ico"> 
+   <title>Search Result</title>
 </head>
-
 <body>
 
    <!-- anything having to do with the nav bar -->
    <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
-      <a class="navbar-brand" href="#">appReview</a>
+      <a class="navbar-brand" href="../main.html">appReview</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
          aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
          <span class="navbar-toggler-icon"></span>
@@ -28,36 +41,25 @@
          <ul class="navbar-nav mr-auto">
 
           <li class="nav-item active">
-             <a class="nav-link" href="#">Home<span class="sr-only">(current)</span></a>
+             <a class="nav-link" href="../main.html">Home</a>
           </li>
           <li class="nav-item">
              <a class="nav-link" href="https://www.youtube.com/">Youtube</a>
           </li>
           <li class="nav-item">
-             <a class="nav-link" href="./redirectedPage.html">Go elsewhere</a>
+             <a class="nav-link" href="../redirectedPage.html">Go elsewhere</a>
           </li>
          </ul>
       </div>
    </nav>
-
-
-    <!-- content below navbar -->
-    <p class="words">Hello Hello welcome to da home</p>
-    
-    <!-- a comment line -->
-
-
-   <!-- form/cgi/classes interaction test w/ search bar -->
-   <div class="mainSearch">
-      <img src="./images/logo.png">
-      <form action="./codes/search_backend.php" method="post">
-         <input class="form-control mr-sm-2" type="text" placeholder="What are you looking for?" aria-label="Search"
+   <div class="search">
+      <form action="./search_backend.php" method="post" class="form-inline">
+         <input class="form-control mr-sm-2" type="text" placeholder="You searched <?php echo $searchQuery ?>" aria-label="Search"
             name="searchQuery">
-         <br>
          <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
       </form>
    </div>
-
+   
    <!-- Optional JavaScript -->
    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

@@ -4,7 +4,7 @@ session_start();
 $action = "";
 if (isset($_GET['action'])) {
     $action = htmlspecialchars($_GET['action']);
-    if ($action == "logout") {
+    if ($action == "logout" || $action == "login") {
         $tmp = $_SESSION['searchQuery'];
         session_unset();
         $_SESSION['searchQuery'] = $tmp;
@@ -57,6 +57,41 @@ function pwdV($mysqli)
     return 3;
 }
 $pV = pwdV($mysqli);
+
+//signup
+function signV($mysqli)
+{
+    if (isset($_POST['usr']) && isset($_POST['pwd1']) && isset($_POST['pwd2'])) {
+        $username = $_POST['usr'];
+        $pwd1 = $_POST['pwd1'];
+        $pwd2 = $_POST['pwd2'];
+    }
+    if (isset($pwd2) && isset($pwd1) && isset($username)) {
+        if ($pwd1 != $pwd2) {
+            return 1;
+        }
+        $res = mysqli_query($mysqli, "SELECT user from users order by user");
+        if (!$res) {
+            echo "error on sql - $mysqli->error";
+        } else {
+            $f = true;
+            while ($row = mysqli_fetch_assoc($res)) {
+                if ($username === $row['user']) {
+                    $f = false;
+                }
+            }
+            if (!$f) {
+                return 2;
+            }
+        }
+        $hash = password_hash($pwd1, PASSWORD_DEFAULT);
+        $res2 = mysqli_query($mysqli, "INSERT INTO users (user, password, division) VALUE ('$username', '$hash', 3);");
+        $_SESSION['usr'] = $username;
+        return 0;
+    }
+    return 3;
+}
+$sV = signV($mysqli);
 
 //search
 if (isset($_POST['searchQuery'])) {
@@ -115,6 +150,7 @@ $searchQuery = $_SESSION['searchQuery'];
             <?php
         } else {
             ?>
+                <li class="nav-item"><a class="nav-link" href="index.php?action=signup"> Sign up</a></li>
                 <li class="nav-item"><a class="nav-link" href="index.php?action=login"> Login</a></li>
             <?php
         }
@@ -132,7 +168,7 @@ $searchQuery = $_SESSION['searchQuery'];
         ?>
         <div class="container">
 
-            <h1>Please sign in</h1>
+            <h1>Please log in</h1>
             <form method='post' action="<?php print $_SERVER['PHP_SELF']; ?>?action=login">
                 <div class="loginForm">
                     <div>
@@ -159,6 +195,59 @@ $searchQuery = $_SESSION['searchQuery'];
 
         </div>
     <?php
+} else if ($action == "signup" && $sV == 0) {
+    ?>
+    <div class="container">
+
+        <h2>Welcome, User: <?php echo $_SESSION['usr']; ?></h2>
+        <a href="index.php">Click here to continue.</a>
+        
+    </div>
+<?php
+} else if ($action == "signup" && $sV != 0) {
+    ?>
+        <div class="container">
+
+            <h1>Please sign up</h1>
+            <form method='post' action="<?php print $_SERVER['PHP_SELF']; ?>?action=signup">
+                <div class="loginForm">
+                    <div>
+                        <label for="usr">Username: </label>
+                        <input class="form-control" type="text" name="usr">
+                    </div>
+                    <div>
+                        <label for="pwd1">Password: </label>
+                        <input class="form-control" type="password" name="pwd1">
+                    </div>
+                    <div>
+                        <label for="pwd2">Verify Password: </label>
+                        <input class="form-control" type="password" name="pwd2">
+                    </div>
+                    <p class="loginAlert">
+                        <?php
+
+                        if ($sV == 1) {
+                            echo 'The Verify Password is not same as the Password!';
+                        } else if ($sV == 2) {
+                            echo 'The Username is already exist!';
+                        }
+                        ?>
+                    </p>
+                    <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Sign up</button>
+                </div>
+            </form>
+
+        </div>
+    <?php
+} else if ($action == "login" && $pV == 0) {
+    ?>
+    <div class="container">
+
+        <h2>Welcome back, User: <?php echo $_SESSION['user']; ?></h2>
+        <a href="index.php">Click here to continue.</a>
+        
+    </div>
+<?php
 } else if ($action == "otherPage") {
     ?>
         <div class="words">

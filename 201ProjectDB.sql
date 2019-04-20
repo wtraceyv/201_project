@@ -23,7 +23,7 @@ CREATE TABLE apps (
 	appName			VARCHAR(50)			NOT NULL,
 	category		VARCHAR(25)			NOT NULL, 
 	appDescription          VARCHAR(300)                            NOT NULL,
-	price                   DOUBLE                          NOT NULL
+	price                   DECIMAL                          NOT NULL
 )
 GO
 

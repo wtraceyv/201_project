@@ -4,7 +4,7 @@ session_start();
 $action = "";
 if (isset($_GET['action'])) {
     $action = htmlspecialchars($_GET['action']);
-    if ($action == "logout") {
+    if ($action == "logout" || $action == "login") {
         $tmp = $_SESSION['searchQuery'];
         session_unset();
         $_SESSION['searchQuery'] = $tmp;
@@ -58,6 +58,41 @@ function pwdV($mysqli)
 }
 $pV = pwdV($mysqli);
 
+//signup
+function signV($mysqli)
+{
+    if (isset($_POST['usr']) && isset($_POST['pwd1']) && isset($_POST['pwd2'])) {
+        $username = $_POST['usr'];
+        $pwd1 = $_POST['pwd1'];
+        $pwd2 = $_POST['pwd2'];
+    }
+    if (isset($pwd2) && isset($pwd1) && isset($username)) {
+        if ($pwd1 != $pwd2) {
+            return 1;
+        }
+        $res = mysqli_query($mysqli, "SELECT user from users order by user");
+        if (!$res) {
+            echo "error on sql - $mysqli->error";
+        } else {
+            $f = true;
+            while ($row = mysqli_fetch_assoc($res)) {
+                if ($username === $row['user']) {
+                    $f = false;
+                }
+            }
+            if (!$f) {
+                return 2;
+            }
+        }
+        $hash = password_hash($pwd1, PASSWORD_DEFAULT);
+        $res2 = mysqli_query($mysqli, "INSERT INTO users (user, password, division) VALUE ('$username', '$hash', 3);");
+        $_SESSION['usr'] = $username;
+        return 0;
+    }
+    return 3;
+}
+$sV = signV($mysqli);
+
 //search
 if (isset($_POST['searchQuery'])) {
     $_SESSION['searchQuery'] = htmlspecialchars($_POST['searchQuery']);
@@ -74,7 +109,8 @@ $searchQuery = $_SESSION['searchQuery'];
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="./images/logo.ico">
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -92,7 +128,7 @@ $searchQuery = $_SESSION['searchQuery'];
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav mr-auto">
+            <ul class="navbar-nav">
 
                 <li class="nav-item active">
                     <a class="nav-link" href="index.php">Home<span class="sr-only">(current)</span></a>
@@ -105,22 +141,23 @@ $searchQuery = $_SESSION['searchQuery'];
                 </li>
             </ul>
         </div>
-        <ul class="nav navbar-nav navbar-right">
-
+        <ul class="navbar-nav mr-auto">
+            <?php
+            if ($pV == 0) {
+                ?>
+                <li class="nav-item"><a class="nav-link" href="#">Current User: <?php echo $_SESSION['user']; ?></a></li>
+                <li class="nav-item"><a class="nav-link" href="index.php?action=logout"> Logout</a></li>
+            <?php
+        } else {
+            ?>
+                <li class="nav-item"><a class="nav-link" href="index.php?action=signup"> Sign up</a></li>
+                <li class="nav-item"><a class="nav-link" href="index.php?action=login"> Login</a></li>
+            <?php
+        }
+        ?>
 
         </ul>
-        <?php
-        if ($pV == 0) {
-            ?>
-            <li><a href="#"><span class="glyphicon glyphicon-user"></span><?php echo $_SESSION['user']; ?></a></li>
-            <li><a href="index.php?action=logout"><span class="glyphicon glyphicon-log-in"></span> Logout</a></li>
-        <?php
-    } else {
-        ?>
-            <li><a href="index.php?action=login"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
-        <?php
-    }
-    ?>
+
     </nav>
 
 
@@ -131,27 +168,93 @@ $searchQuery = $_SESSION['searchQuery'];
         ?>
         <div class="container">
 
-            <h1>Please sign in</h1>
-            <div class="form-group">
-                <form method='post' action="<?php print $_SERVER['PHP_SELF']; ?>?action=login">
-                    User: <input type="text" name="user">
-                    Password: <input type="password" name="pass">
-                    <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Log in</button>
-                </form>
-                <p>
-                    <?php
+            <h1>Please log in</h1>
+            <form method='post' action="<?php print $_SERVER['PHP_SELF']; ?>?action=login">
+                <div class="loginForm">
+                    <div>
+                        <label for="user">Username: </label>
+                        <input class="form-control" type="text" name="user">
+                    </div>
+                    <div>
+                        <label for="pass">Password: </label>
+                        <input class="form-control" type="password" name="pass">
+                    </div>
+                    <p class="loginAlert">
+                        <?php
 
-                    if ($pV == 1) {
-                        echo 'The Password is invalid!';
-                    } else if ($pV == 2) {
-                        echo 'The Username are invalid!';
-                    }
-                    ?>
-                </p>
-            </div>
+                        if ($pV == 1) {
+                            echo 'The Password is invalid!';
+                        } else if ($pV == 2) {
+                            echo 'The Username are invalid!';
+                        }
+                        ?>
+                    </p>
+                    <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Log in</button>
+                </div>
+            </form>
+
         </div>
     <?php
-} else  if ($searchQuery != "") {
+} else if ($action == "signup" && $sV == 0) {
+    ?>
+    <div class="container">
+
+        <h2>Welcome, User: <?php echo $_SESSION['usr']; ?></h2>
+        <a href="index.php">Click here to continue.</a>
+        
+    </div>
+<?php
+} else if ($action == "signup" && $sV != 0) {
+    ?>
+        <div class="container">
+
+            <h1>Please sign up</h1>
+            <form method='post' action="<?php print $_SERVER['PHP_SELF']; ?>?action=signup">
+                <div class="loginForm">
+                    <div>
+                        <label for="usr">Username: </label>
+                        <input class="form-control" type="text" name="usr">
+                    </div>
+                    <div>
+                        <label for="pwd1">Password: </label>
+                        <input class="form-control" type="password" name="pwd1">
+                    </div>
+                    <div>
+                        <label for="pwd2">Verify Password: </label>
+                        <input class="form-control" type="password" name="pwd2">
+                    </div>
+                    <p class="loginAlert">
+                        <?php
+
+                        if ($sV == 1) {
+                            echo 'The Verify Password is not same as the Password!';
+                        } else if ($sV == 2) {
+                            echo 'The Username is already exist!';
+                        }
+                        ?>
+                    </p>
+                    <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Sign up</button>
+                </div>
+            </form>
+
+        </div>
+    <?php
+} else if ($action == "login" && $pV == 0) {
+    ?>
+    <div class="container">
+
+        <h2>Welcome back, User: <?php echo $_SESSION['user']; ?></h2>
+        <a href="index.php">Click here to continue.</a>
+        
+    </div>
+<?php
+} else if ($action == "otherPage") {
+    ?>
+        <div class="words">
+            <h1>Welcome to another magical page</h1>
+        </div>
+    <?php
+} else if ($searchQuery != "") {
     ?>
         <div class="search">
             <form action="<?php print $_SERVER['PHP_SELF']; ?>" method="post" class="form-inline">
@@ -159,12 +262,6 @@ $searchQuery = $_SESSION['searchQuery'];
                 <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
             </form>
         </div>
-        <?php
-} else if ($action == "otherPage") {
-    ?>
-    <div class="words">
-        <h1>Welcome to another magical page</h1>
-     </div>
     <?php
 } else {
     ?>

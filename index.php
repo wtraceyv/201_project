@@ -1,6 +1,5 @@
 <?php
 session_start();
-
 $action = "";
 if (isset($_GET['action'])) {
     $action = htmlspecialchars($_GET['action']);
@@ -10,7 +9,6 @@ if (isset($_GET['action'])) {
         $_SESSION['searchQuery'] = $tmp;
     }
 }
-
 //connect to the data base
 //require_once "passwords.php";
 $user = "201CTeam6";
@@ -21,7 +19,6 @@ if (mysqli_connect_errno($mysqli)) {
     echo "Failed to connect to MySQL: " . mysqli_connect_error();
     die;
 }
-
 //log in
 function pwdV($mysqli)
 {
@@ -57,7 +54,6 @@ function pwdV($mysqli)
     return 3;
 }
 $pV = pwdV($mysqli);
-
 //signup
 function signV($mysqli)
 {
@@ -92,7 +88,6 @@ function signV($mysqli)
     return 3;
 }
 $sV = signV($mysqli);
-
 //search
 if (isset($_POST['searchQuery'])) {
     $_SESSION['searchQuery'] = htmlspecialchars($_POST['searchQuery']);
@@ -163,8 +158,8 @@ $searchQuery = $_SESSION['searchQuery'];
 
     <!-- content below navbar -->
     <?php
-
     if ($action == "login" && $pV != 0) {
+        // login form 
         ?>
         <div class="container">
 
@@ -181,7 +176,6 @@ $searchQuery = $_SESSION['searchQuery'];
                     </div>
                     <p class="loginAlert">
                         <?php
-
                         if ($pV == 1) {
                             echo 'The Password is invalid!';
                         } else if ($pV == 2) {
@@ -196,6 +190,7 @@ $searchQuery = $_SESSION['searchQuery'];
         </div>
     <?php
 } else if ($action == "signup" && $sV == 0) {
+    // successful sign up
     ?>
     <div class="container">
 
@@ -205,6 +200,7 @@ $searchQuery = $_SESSION['searchQuery'];
     </div>
 <?php
 } else if ($action == "signup" && $sV != 0) {
+    // signup form 
     ?>
         <div class="container">
 
@@ -225,7 +221,6 @@ $searchQuery = $_SESSION['searchQuery'];
                     </div>
                     <p class="loginAlert">
                         <?php
-
                         if ($sV == 1) {
                             echo 'The Verify Password is not same as the Password!';
                         } else if ($sV == 2) {
@@ -240,6 +235,7 @@ $searchQuery = $_SESSION['searchQuery'];
         </div>
     <?php
 } else if ($action == "login" && $pV == 0) {
+    // successful login message
     ?>
     <div class="container">
 
@@ -249,12 +245,14 @@ $searchQuery = $_SESSION['searchQuery'];
     </div>
 <?php
 } else if ($action == "otherPage") {
+    // probably won't get used for now
     ?>
         <div class="words">
             <h1>Welcome to another magical page</h1>
         </div>
     <?php
 } else if ($searchQuery != "") {
+    // Handle normal searches/displaying apps
     ?>
         <div class="search">
             <form action="<?php print $_SERVER['PHP_SELF']; ?>" method="post" class="form-inline">
@@ -262,12 +260,60 @@ $searchQuery = $_SESSION['searchQuery'];
                 <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
             </form>
         </div>
+        <!-- app displaying results - - - - - - - - - - - - - - - - -->
+        <div class="accordion" id="accordionExample">
+  <div class="card">
+    <div class="card-header" id="headingOne">
+      <h2 class="mb-0">
+        <button class="btn btn-link collapsed float-md-left" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+          <!-- stuff that shows up before dropping down: --> 
+          <img src="Star-icon.png" height="50" width="50" alt="">STAR analytics -- 4.7 -- $4.99
+        </button>
+      </h2>
+    </div>
+
+    <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
+      <div class="card-body">
+        Description/prettier information
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header" id="headingTwo">
+      <h2 class="mb-0">
+        <button class="btn btn-link collapsed float-md-left" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+          <!-- stuff that shows up before dropping down: -->
+          <img src="Star-icon.png" height="50" width="50" alt="">STAR stocks -- 4.3 -- $9.99
+        </button>
+      </h2>
+    </div>
+    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+      <div class="card-body">
+        Description/prettier information 
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header" id="headingThree">
+      <h2 class="mb-0">
+        <button class="btn btn-link collapsed float-md-left" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+          <!-- stuff that shows up before dropping down: -->
+          <img src="Star-icon.png" height="50" width="50" alt="">STAR suites -- 3.9 -- $24.99 
+        </button>
+      </h2>
+    </div>
+    <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+      <div class="card-body">
+        Description/prettier information 
+      </div>
+    </div>
+  </div>
+</div>
+    <!-- end app displaying results -->
+
     <?php
 } else {
     ?>
-        <!-- a comment line -->
-
-
         <!-- form/cgi/classes interaction test w/ search bar -->
         <div class="mainSearch">
             <img src="./images/logo.png">

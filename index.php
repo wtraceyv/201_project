@@ -267,7 +267,7 @@ $searchQuery = $_SESSION['searchQuery'];
       <h2 class="mb-0">
         <button class="btn btn-link collapsed float-md-left" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
           <!-- stuff that shows up before dropping down: --> 
-          <img src="Star-icon.png" height="50" width="50" alt="">STAR analytics -- 4.7 -- $4.99
+          <img src="./images/Star-icon.png" height="50" width="50" alt="">STAR analytics -- 4.7 -- $4.99
         </button>
       </h2>
     </div>
@@ -283,7 +283,7 @@ $searchQuery = $_SESSION['searchQuery'];
       <h2 class="mb-0">
         <button class="btn btn-link collapsed float-md-left" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
           <!-- stuff that shows up before dropping down: -->
-          <img src="Star-icon.png" height="50" width="50" alt="">STAR stocks -- 4.3 -- $9.99
+          <img src="./images/Star-icon.png" height="50" width="50" alt="">STAR stocks -- 4.3 -- $9.99
         </button>
       </h2>
     </div>
@@ -298,7 +298,7 @@ $searchQuery = $_SESSION['searchQuery'];
       <h2 class="mb-0">
         <button class="btn btn-link collapsed float-md-left" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
           <!-- stuff that shows up before dropping down: -->
-          <img src="Star-icon.png" height="50" width="50" alt="">STAR suites -- 3.9 -- $24.99 
+          <img src="./images/Star-icon.png" height="50" width="50" alt="">STAR suites -- 3.9 -- $24.99 
         </button>
       </h2>
     </div>

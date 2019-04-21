@@ -11,6 +11,7 @@ if (isset($_GET['action'])) {
 }
 //connect to the data base
 //require_once "passwords.php";
+// mysql --user=201CTeam6 --password=NoPassword --host=35.201.215.85 --database="appReview"
 $user = "201CTeam6";
 $password = "NoPassword";
 $mysqli = mysqli_connect("35.201.215.85", $user, $password, "appReview");
@@ -54,7 +55,8 @@ function pwdV($mysqli)
     return 3;
 }
 $pV = pwdV($mysqli);
-//signup
+
+// Sign up
 function signV($mysqli)
 {
     if (isset($_POST['usr']) && isset($_POST['pwd1']) && isset($_POST['pwd2'])) {
@@ -88,7 +90,30 @@ function signV($mysqli)
     return 3;
 }
 $sV = signV($mysqli);
-//search
+
+// submitting new apps
+function addApp($mysqli) 
+{
+    if (isset($_POST['appName']) && isset($_POST['category']) && isset($_POST['appDescription']) && isset($_POST['price'])) {
+        $appName = $_POST['appName'];
+        $category = $_POST['category'];
+        $appDescription = $_POST['appDescription'];
+        $price = $_POST['price'];
+        // put some sort of smart checking here
+        // skipping for now
+        $res = mysqli_query($mysqli, "INSERT INTO apps (appName, category, appDescription, price, approved) VALUE ('$appName', '$category', '$appDescription', '$price', false);");
+        if (!$res) {
+            echo "error on sql - $mysqli->error";
+        }
+        $_SESSION['appName'] = $appName; 
+        return 0; 
+    } else {
+        return 1; // something is incomplete, don't add anything 
+    }
+}
+$addApp = addApp($mysqli); 
+
+//SEARCHING FUNCTION
 if (isset($_POST['searchQuery'])) {
     $_SESSION['searchQuery'] = htmlspecialchars($_POST['searchQuery']);
 }
@@ -96,6 +121,21 @@ if (!isset($_SESSION['searchQuery'])) {
     $_SESSION['searchQuery'] = "";
 }
 $searchQuery = $_SESSION['searchQuery'];
+function search($mysqli, $searchQuery) 
+{
+    if (strcasecmp($searchQuery, "all") == 0) { // so we can see all
+        $res = mysqli_query($mysqli, "SELECT * from apps;");
+        return $res;  
+    }
+
+    // implement filter deal here too ...
+
+    $res = mysqli_query($mysqli, "SELECT * from apps WHERE appName LIKE '%$searchQuery%' OR category LIKE '%$searchQuery%';"); 
+    return $res; 
+}
+$searchResult = search($mysqli, $searchQuery); 
+
+// html doc starts below
 ?>
 
 <!doctype html>
@@ -132,7 +172,7 @@ $searchQuery = $_SESSION['searchQuery'];
                     <a class="nav-link" href="https://www.youtube.com/">Youtube</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="index.php?action=otherPage">Go elsewhere</a>
+                    <a class="nav-link" href="index.php?action=submitApp">Submit</a>
                 </li>
             </ul>
         </div>
@@ -239,17 +279,49 @@ $searchQuery = $_SESSION['searchQuery'];
     ?>
     <div class="container">
 
-        <h2>Welcome back, User: <?php echo $_SESSION['user']; ?></h2>
+        <h2>Welcome back, user: <?php echo $_SESSION['user']; ?></h2>
         <a href="index.php">Click here to continue.</a>
         
     </div>
 <?php
-} else if ($action == "otherPage") {
-    // probably won't get used for now
+} else if ($action == "submitApp" && $addApp != 0) {
+    // APP REQUEST FORM
     ?>
-        <div class="words">
-            <h1>Welcome to another magical page</h1>
-        </div>
+        <h1 class="words">Welcome! We love taking new apps!</h1>
+        <h5>Complete the form below to submit a new app and we'll see about approving it.</h5>
+
+        <form method='post' action="<?php print $_SERVER['PHP_SELF']; ?>?action=submitApp">
+                <div class="submitAppForm">
+                    <div>
+                        <label for="appName">App name: </label>
+                        <input type="text" name="appName">
+                    </div>
+                    <div>
+                        <label for="category">Category: </label>
+                        <input type="text" name="category">
+                    </div>
+                    <div>
+                        <label for="appDescription">A short description: </label>
+                        <input type="text" name="appDescription">
+                    </div>
+                    <div>
+                        <label for="price">Price: </label>
+                        <input size="6" type="number" step=".01" name="price">
+                    </div>
+                    <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Submit proposed app</button>
+                </div>
+            </form>
+
+    <?php
+} else if ($action == "submitApp" && $addApp == 0) {
+    // successful app submitted
+    ?>
+    <div class="container">
+
+        <h2>Great! We hope <?php echo $_SESSION['appName']; ?> makes the cut!</h2>
+        <a href="index.php">Click here to continue.</a>
+        
+    </div>
     <?php
 } else if ($searchQuery != "") {
     // Handle normal searches/displaying apps
@@ -258,57 +330,51 @@ $searchQuery = $_SESSION['searchQuery'];
             <form action="<?php print $_SERVER['PHP_SELF']; ?>" method="post" class="form-inline">
                 <input class="form-control mr-sm-2" type="text" placeholder="You searched <?php echo $searchQuery ?>" aria-label="Search" name="searchQuery">
                 <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
+
+                <div class="btn-group">
+                  <button type="button" class="btn btn-info">Sort by</button>
+                  <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="sr-only">Toggle Dropdown</span>
+                  </button>
+                  <div class="dropdown-menu">
+                    <button class="dropdown-item" type="button">Name (default)</button>
+                    <button class="dropdown-item" type="button">Price</button>
+                    <button class="dropdown-item" type="button">Ratings</button>
+                    <button class="dropdown-item" type="button">Downloads</button>
+                    <button class="dropdown-item" type="button">Category</button>
+                  </div>
+                </div>
             </form>
         </div>
-        <!-- app displaying results - - - - - - - - - - - - - - - - -->
-        <div class="accordion" id="accordionExample">
-  <div class="card">
-    <div class="card-header" id="headingOne">
-      <h2 class="mb-0">
-        <button class="btn btn-link collapsed float-md-left" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-          <!-- stuff that shows up before dropping down: --> 
-          <img src="./images/Star-icon.png" height="50" width="50" alt="">STAR analytics -- 4.7 -- $4.99
-        </button>
-      </h2>
-    </div>
 
-    <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
-      <div class="card-body">
-        Description/prettier information
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-header" id="headingTwo">
-      <h2 class="mb-0">
-        <button class="btn btn-link collapsed float-md-left" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-          <!-- stuff that shows up before dropping down: -->
-          <img src="./images/Star-icon.png" height="50" width="50" alt="">STAR stocks -- 4.3 -- $9.99
-        </button>
-      </h2>
-    </div>
-    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
-      <div class="card-body">
-        Description/prettier information 
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-header" id="headingThree">
-      <h2 class="mb-0">
-        <button class="btn btn-link collapsed float-md-left" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-          <!-- stuff that shows up before dropping down: -->
-          <img src="./images/Star-icon.png" height="50" width="50" alt="">STAR suites -- 3.9 -- $24.99 
-        </button>
-      </h2>
-    </div>
-    <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
-      <div class="card-body">
-        Description/prettier information 
-      </div>
-    </div>
-  </div>
-</div>
+        <!-- app displaying results - - - - - - - - - - - - - - - - -->
+        <?php 
+            while($row = mysqli_fetch_assoc($searchResult)) {
+            // <?php print $row['appId']; 
+        ?>
+            <div class="accordion" id="accordionExample">
+              <div class="card">
+                <div class="card-header" id="heading<?php print $row['appId']; ?>">
+                  <h2 class="mb-0">
+                    <button class="btn btn-link collapsed float-md-left" type="button" data-toggle="collapse" data-target="#collapse<?php print $row['appId']; ?>" aria-expanded="false" aria-controls="collapse<?php print $row['appId']; ?>">
+                      <!-- stuff that shows up before dropping down: --> 
+                      <img src="./images/Star-icon.png" height="50" width="50" alt=""><?php print "{$row['appName']} -- {$row['price']}" ?>
+                    </button>
+                  </h2>
+                </div>
+
+                <div id="collapse<?php print $row['appId']; ?>" class="collapse" aria-labelledby="heading<?php print $row['appId']; ?>" data-parent="#accordionExample">
+                  <div class="card-body">
+
+                    <p><?php print "{$row['appDescription']}"?></p>
+                  </div>
+
+                </div>
+              </div>
+              </div>
+        <?php
+            }
+        ?>
     <!-- end app displaying results -->
 
     <?php
@@ -321,6 +387,21 @@ $searchQuery = $_SESSION['searchQuery'];
                 <input class="form-control mr-sm-2" type="text" placeholder="What are you looking for?" aria-label="Search" name="searchQuery">
                 <br>
                 <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
+
+                <div class="btn-group">
+                  <button type="button" class="btn btn-info">Sort by</button>
+                  <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="sr-only">Toggle Dropdown</span>
+                  </button>
+                  <div class="dropdown-menu">
+                    <button class="dropdown-item" type="button">Name (default)</button>
+                    <button class="dropdown-item" type="button">Price</button>
+                    <button class="dropdown-item" type="button">Ratings</button>
+                    <button class="dropdown-item" type="button">Downloads</button>
+                    <button class="dropdown-item" type="button">Category</button>
+                  </div>
+                </div>
+
             </form>
         </div>
     <?php

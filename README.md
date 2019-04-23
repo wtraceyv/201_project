@@ -5,14 +5,11 @@
 ##### css/
 Extra non-bootstrap CSS files for overriding theme colors, etc. 
 
-##### codes/
-Both of the backend (PHP) and frontend (JS) code for search, display, etc
-
 ##### images/
 The images files, such as icons
 
-##### mainPage.html
-Main search page html 
+##### index.php
+All main functionality and html for the site
 
-##### redirectedPage.html
-Dummy page for later use (html to be refined)
+##### opensite.py
+A way for anyone to immediately open the site ('build script')

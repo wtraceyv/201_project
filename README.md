@@ -2,11 +2,17 @@
 
 #### Here is where we store the code 
 
-### scraping 
-If we need to scrape data from the internet for usable example data, we'll do that with python/BeautifulSoup.
+##### css/
+Extra non-bootstrap CSS files for overriding theme colors, etc. 
 
-### server 
-With basic knowledge from Systems, we will have a simple C++ client for putting the app up on the internet as long as the user/tester has access to the port number they need.
+##### codes/
+Both of the backend (PHP) and frontend (JS) code for search, display, etc
 
-### bootstrap 
-We intend to use bootstrap to design/code the app visually -- it's a popular standard that front-end developers definitely need to know to some extent.
+##### images/
+The images files, such as icons
+
+##### mainPage.html
+Main search page html 
+
+##### redirectedPage.html
+Dummy page for later use (html to be refined)

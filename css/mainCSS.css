@@ -1,0 +1,36 @@
+body {
+  text-align: center;
+  height: 100%;
+}
+
+
+.mainSearch {
+  margin: 0 auto;
+  display: inline-block;
+  text-align: center;
+  width: 600px;
+}
+
+.loginForm {
+  margin: 0 auto;
+  display: inline-block;
+  text-align: center;
+  width: 300px;
+}
+
+.search {
+  margin-left: 20px;
+}
+
+.words {
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-align: center;
+  align-items: center;
+  background-color: #f5f5f5;
+}
+
+.loginAlert {
+  color: red;
+  font-weight: bold;
+}

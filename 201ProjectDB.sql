@@ -21,7 +21,9 @@ GO
 CREATE TABLE apps (
 	appId			INT					PRIMARY KEY		IDENTITY,
 	appName			VARCHAR(50)			NOT NULL,
-	appType			VARCHAR(25)			NOT NULL
+	category		VARCHAR(25)			NOT NULL, 
+	appDescription          VARCHAR(300)                            NOT NULL,
+	price                   DECIMAL                          NOT NULL
 )
 GO
 

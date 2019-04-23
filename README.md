@@ -13,3 +13,6 @@ All main functionality and html for the site
 
 ##### opensite.py
 A way for anyone to immediately open the site ('build script')
+
+##### 201ProjectDB.sql
+A script for guiding/documenting the architecture of our database

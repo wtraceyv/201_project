@@ -364,8 +364,10 @@ $searchResult = search($mysqli, $searchQuery);
 
                 <div id="collapse<?php print $row['appId']; ?>" class="collapse" aria-labelledby="heading<?php print $row['appId']; ?>" data-parent="#accordionExample">
                   <div class="card-body">
-
-                    <p><?php print "{$row['appDescription']}"?></p>
+			<h1><?php print "{$row['appName']}"?></h1>
+			<h2><?php print "{$row['price']}"?></h2>
+			<h4><?php print "{$row['appDescription']}"?></h4>
+			<h4>Screenshots:<h4/>
                   </div>
 
                 </div>

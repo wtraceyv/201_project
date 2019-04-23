@@ -10,7 +10,6 @@ if (isset($_GET['action'])) {
     }
 }
 //connect to the data base
-//require_once "passwords.php";
 // mysql --user=201CTeam6 --password=NoPassword --host=35.201.215.85 --database="appReview"
 $user = "201CTeam6";
 $password = "NoPassword";

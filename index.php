@@ -54,7 +54,6 @@ function pwdV($mysqli)
     return 3;
 }
 $pV = pwdV($mysqli);
-
 // Sign up
 function signV($mysqli)
 {
@@ -89,7 +88,6 @@ function signV($mysqli)
     return 3;
 }
 $sV = signV($mysqli);
-
 // submitting new apps
 function addApp($mysqli)
 {
@@ -111,7 +109,6 @@ function addApp($mysqli)
     }
 }
 $addApp = addApp($mysqli);
-
 //SEARCHING FUNCTION
 if (isset($_POST['searchQuery'])) {
     $_SESSION['searchQuery'] = htmlspecialchars($_POST['searchQuery']);
@@ -131,14 +128,12 @@ function search($mysqli, $searchQuery, $sortBy)
         
         return $res;
     }
-
     // implement filter deal here too ...
     if ($sortBy != "") {
         $res = mysqli_query($mysqli, "SELECT * from apps WHERE appName LIKE '%$searchQuery%' OR category LIKE '%$searchQuery%' ORDER BY $sortBy;");
     } else {
         $res = mysqli_query($mysqli, "SELECT * from apps WHERE appName LIKE '%$searchQuery%' OR category LIKE '%$searchQuery%';");
     }
-
     
     return $res;
 }
@@ -146,12 +141,7 @@ $sortBy = "";
 if (isset($_POST['sort'])) {
     $sortBy = $_POST['sort'];
 }
-
     $searchResult = search($mysqli, $searchQuery, $sortBy);
-
-
-
-
 // html doc starts below
 ?>
 
@@ -202,14 +192,14 @@ if (isset($_POST['sort'])) {
             <?php
         } else {
             ?>
-                <li class="nav-item"><a class="nav-link" href="index.php?action=signup"> Sign up</a></li>
-                <li class="nav-item"><a class="nav-link" href="index.php?action=login"> Login</a></li>
+                <a class="navbar-brand" href="index.php?action=signup"> Sign up</a>
+        <a class="navbar-brand" href="index.php?action=login"> Login</a>
             <?php
         }
         ?>
 
         </ul>
-
+        
     </nav>
 
 
@@ -304,28 +294,30 @@ if (isset($_POST['sort'])) {
 } else if ($action == "submitApp" && $addApp != 0) {
     // APP REQUEST FORM
     ?>
-        <h1 class="words">Welcome! We love taking new apps!</h1>
+        <h1 class="words container-fluid">Welcome! We love taking new apps!</h1>
         <h5>Complete the form below to submit a new app and we'll see about approving it.</h5>
 
         <form method='post' action="<?php print $_SERVER['PHP_SELF']; ?>?action=submitApp">
-            <div class="submitAppForm">
-                <div>
-                    <label for="appName">App name: </label>
-                    <input type="text" name="appName">
+            <div class="align-items-center">
+                <div class="submitAppForm">
+                    <div class="col-md-4 mb-3">
+                        <label for="appName">App name: </label>
+                        <input type="text" name="appName">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="category">Category: </label>
+                        <input type="text" name="category">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="appDescription">A short description: </label>
+                        <input type="text" name="appDescription">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="price">Price: </label>
+                        <input size="6" type="number" step=".01" name="price">
+                    </div>
+                    <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Submit proposed app</button>
                 </div>
-                <div>
-                    <label for="category">Category: </label>
-                    <input type="text" name="category">
-                </div>
-                <div>
-                    <label for="appDescription">A short description: </label>
-                    <input type="text" name="appDescription">
-                </div>
-                <div>
-                    <label for="price">Price: </label>
-                    <input size="6" type="number" step=".01" name="price">
-                </div>
-                <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Submit proposed app</button>
             </div>
         </form>
 
@@ -370,22 +362,31 @@ if (isset($_POST['sort'])) {
                         <h2 class="mb-0">
                             <button class="btn btn-link collapsed float-md-left" type="button" data-toggle="collapse" data-target="#collapse<?php print $row['appId']; ?>" aria-expanded="false" aria-controls="collapse<?php print $row['appId']; ?>">
                                 <!-- stuff that shows up before dropping down: -->
-                                <img src="./images/Star-icon.png" height="50" width="50" alt=""><?php print "{$row['appName']} -- {$row['price']}" ?>
+                                <span style="float:left;">
+                                    <img src="./images/Star-icon.png" height="50" width="50" alt="">
+                                </span>
+                                <span style="float:left;">
+                                    <h2><?php print "{$row['appName']}" ?></h2>
+                                </span>
                             </button>
                         </h2>
                     </div>
 
                     <div id="collapse<?php print $row['appId']; ?>" class="collapse" aria-labelledby="heading<?php print $row['appId']; ?>" data-parent="#accordionExample">
-                        <div class="card-body">
-                            <h1><?php print "{$row['appName']}" ?></h1>
-                            <h2><?php print "{$row['price']}" ?></h2>
-                            <h4><?php print "{$row['appDescription']}" ?></h4>
-                            <h4>Screenshots:</h4>
-                        </div>
+                  <div class="card-body">
+                    <span style="float:left;">
+                     <h2>Description:</h2>
+                     <h4><?php print "{$row['appDescription']}"?></h4>
+                    </span>
+                     <span style="float:right;">  
+                     <h3><?php print "{$row['category']}"?></h3>
+                     <h3><?php print "{$row['price']}"?></h3>
+                     <h3><a class="btn btn-primary" href="https://www.youtube.com/" role="button">More Details</a></h3>                    </span>
+                  </div>
 
-                    </div>
                 </div>
-            </div>
+              </div>
+              </div>
         <?php
     }
     ?>
@@ -400,9 +401,10 @@ if (isset($_POST['sort'])) {
             <form action="<?php print $_SERVER['PHP_SELF']; ?>" method="post">
                 <input class="form-control mr-sm-2" type="text" placeholder="What are you looking for?" aria-label="Search" name="searchQuery">
                 <br>
+
                 <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
-                <label for="sort">Sort by: </label>
-                <select class="form-control" name="sort">
+                <select class="my-4 my-sm-0" name="sort">
+                    <option value="" disabled selected>Sort..</option>
                     <option value="appName">Name</option>
                     <option value="price">Price</option>
                     <option value="ratings">Ratings</option>

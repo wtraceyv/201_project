@@ -8,6 +8,9 @@ if (isset($_GET['action'])) {
         session_unset();
         $_SESSION['searchQuery'] = $tmp;
     }
+    if ($action == "default") {
+        $_SESSION['searchQuery'] = "";
+    }
 }
 //connect to the data base
 // mysql --user=201CTeam6 --password=NoPassword --host=35.201.215.85 --database="appReview"
@@ -146,6 +149,8 @@ if (isset($_POST['sort'])) {
     $sortBy = $_POST['sort'];
 }
 $searchResult = search($mysqli, $searchQuery, $sortBy);
+
+
 // html doc starts below
 ?>
 
@@ -176,14 +181,26 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav">
 
-                <li class="nav-item active">
-                    <a class="nav-link" href="index.php">Home<span class="sr-only">(current)</span></a>
+                <?php if ($action == "" || $action == "default") { ?>
+                    <li class="nav-item active">
+                    <?php } else { ?>
+                    <li class="nav-item">
+                    <?php
+                }
+                ?>
+                    <a class="nav-link" href="index.php?action=default">Home</a>
                 </li>
                 <?php
                 if ($pV == 5) {
                     ?>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./admin.html">adminPage</a>
+                    <?php if ($action == "admin") { ?>
+                        <li class="nav-item active">
+                        <?php } else { ?>
+                        <li class="nav-item">
+                        <?php
+                    }
+                    ?>
+                        <a class="nav-link" href="index.php?action=admin">adminPage</a>
                     </li>
                 <?php
             } else {
@@ -195,7 +212,13 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
             }
             ?>
 
-                <li class="nav-item">
+                <?php if ($action == "submitApp") { ?>
+                    <li class="nav-item active">
+                    <?php } else { ?>
+                    <li class="nav-item">
+                    <?php
+                }
+                ?>
                     <a class="nav-link" href="index.php?action=submitApp">Submit</a>
                 </li>
             </ul>
@@ -308,6 +331,46 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
 
         </div>
     <?php
+} else if ($action == "admin" && $pV == 5) {
+    //admin page
+    ?>
+        <div class="container">
+            <h2>Welcome, Admin!</h2>
+            <p>Apps to approve: </p>
+            <div class="card" style="width: 18rem;">
+                <img class="card-img-top" src="images/logo.png" alt="Card image cap">
+                <div class="card-body">
+                    <h5 class="card-title">Test I</h5>
+                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Categary: </li>
+                    <li class="list-group-item">Description: </li>
+                </ul>
+                <div class="card-body">
+                    <a href="#" class="btn btn-primary">DENY</a>
+                    <a href="#" class="btn btn-primary">APPROVE</a>
+                </div>
+            </div>
+            <br><br>
+            <div class="card" style="width: 18rem;">
+                <img class="card-img-top" src="images/testLogo.jpg" alt="Card image cap">
+                <div class="card-body">
+                    <h5 class="card-title">Test II</h5>
+                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Categary: </li>
+                    <li class="list-group-item">Description: </li>
+                </ul>
+                <div class="card-body">
+                    <a href="#" class="btn btn-primary">DENY</a>
+                    <a href="#" class="btn btn-primary">APPROVE</a>
+                </div>
+            </div>
+        </div>
+    <?php
+
 } else if ($action == "submitApp" && $addApp != 0) {
     // APP REQUEST FORM
     ?>

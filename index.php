@@ -31,7 +31,7 @@ function pwdV($mysqli)
         $pwd = $_SESSION['pass'];
     }
     if (isset($username) && isset($pwd)) {
-        $res = mysqli_query($mysqli, "SELECT user, password from users order by user");
+        $res = mysqli_query($mysqli, "SELECT user, password, division from users order by user");
         if (!$res) {
             echo "error on sql - $mysqli->error";
         } else {
@@ -39,7 +39,11 @@ function pwdV($mysqli)
             while ($row = mysqli_fetch_assoc($res)) {
                 if ($username === $row['user']) {
                     if (password_verify($pwd, $row['password'])) {
-                        return 0;
+                        if ($row['division'] < 3) {
+                            return 5;
+                        } else {
+                            return 0;
+                        }
                     } else {
                         return 1;
                     }
@@ -125,7 +129,7 @@ function search($mysqli, $searchQuery, $sortBy)
         } else {
             $res = mysqli_query($mysqli, "SELECT * from apps;");
         }
-        
+
         return $res;
     }
     // implement filter deal here too ...
@@ -134,14 +138,14 @@ function search($mysqli, $searchQuery, $sortBy)
     } else {
         $res = mysqli_query($mysqli, "SELECT * from apps WHERE appName LIKE '%$searchQuery%' OR category LIKE '%$searchQuery%';");
     }
-    
+
     return $res;
 }
 $sortBy = "";
 if (isset($_POST['sort'])) {
     $sortBy = $_POST['sort'];
 }
-    $searchResult = search($mysqli, $searchQuery, $sortBy);
+$searchResult = search($mysqli, $searchQuery, $sortBy);
 // html doc starts below
 ?>
 
@@ -175,9 +179,22 @@ if (isset($_POST['sort'])) {
                 <li class="nav-item active">
                     <a class="nav-link" href="index.php">Home<span class="sr-only">(current)</span></a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="https://www.youtube.com/">Youtube</a>
-                </li>
+                <?php
+                if ($pV == 5) {
+                    ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./admin.html">adminPage</a>
+                    </li>
+                <?php
+            } else {
+                ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://www.youtube.com/">Youtube</a>
+                    </li>
+                <?php
+            }
+            ?>
+
                 <li class="nav-item">
                     <a class="nav-link" href="index.php?action=submitApp">Submit</a>
                 </li>
@@ -185,7 +202,7 @@ if (isset($_POST['sort'])) {
         </div>
         <ul class="navbar-nav mr-auto">
             <?php
-            if ($pV == 0) {
+            if ($pV == 0 || $pV == 5) {
                 ?>
                 <li class="nav-item"><a class="nav-link" href="#">Current User: <?php echo $_SESSION['user']; ?></a></li>
                 <li class="nav-item"><a class="nav-link" href="index.php?action=logout"> Logout</a></li>
@@ -193,19 +210,19 @@ if (isset($_POST['sort'])) {
         } else {
             ?>
                 <a class="navbar-brand" href="index.php?action=signup"> Sign up</a>
-        <a class="navbar-brand" href="index.php?action=login"> Login</a>
+                <a class="navbar-brand" href="index.php?action=login"> Login</a>
             <?php
         }
         ?>
 
         </ul>
-        
+
     </nav>
 
 
     <!-- content below navbar -->
     <?php
-    if ($action == "login" && $pV != 0) {
+    if ($action == "login" && ($pV != 0 && $pV != 5)) {
         // login form 
         ?>
         <div class="container">
@@ -281,7 +298,7 @@ if (isset($_POST['sort'])) {
 
         </div>
     <?php
-} else if ($action == "login" && $pV == 0) {
+} else if ($action == "login" && ($pV == 0 || $pV == 5)) {
     // successful login message
     ?>
         <div class="container">
@@ -373,20 +390,21 @@ if (isset($_POST['sort'])) {
                     </div>
 
                     <div id="collapse<?php print $row['appId']; ?>" class="collapse" aria-labelledby="heading<?php print $row['appId']; ?>" data-parent="#accordionExample">
-                  <div class="card-body">
-                    <span style="float:left;">
-                     <h2>Description:</h2>
-                     <h4><?php print "{$row['appDescription']}"?></h4>
-                    </span>
-                     <span style="float:right;">  
-                     <h3><?php print "{$row['category']}"?></h3>
-                     <h3><?php print "{$row['price']}"?></h3>
-                     <h3><a class="btn btn-primary" href="https://www.youtube.com/" role="button">More Details</a></h3>                    </span>
-                  </div>
+                        <div class="card-body">
+                            <span style="float:left;">
+                                <h2>Description:</h2>
+                                <h4><?php print "{$row['appDescription']}" ?></h4>
+                            </span>
+                            <span style="float:right;">
+                                <h3><?php print "{$row['category']}" ?></h3>
+                                <h3><?php print "{$row['price']}" ?></h3>
+                                <h3><a class="btn btn-primary" href="https://www.youtube.com/" role="button">More Details</a></h3>
+                            </span>
+                        </div>
 
+                    </div>
                 </div>
-              </div>
-              </div>
+            </div>
         <?php
     }
     ?>

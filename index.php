@@ -1,6 +1,10 @@
 <?php
 session_start();
+
 $action = "";
+$appApproval = ""; 
+$appInteractionId = -1; 
+
 if (isset($_GET['action'])) {
     $action = htmlspecialchars($_GET['action']);
     if ($action == "logout" || $action == "login") {
@@ -12,8 +16,17 @@ if (isset($_GET['action'])) {
         $_SESSION['searchQuery'] = "";
     }
 }
-//connect to the data base
-// mysql --user=201CTeam6 --password=NoPassword --host=35.201.215.85 --database="appReview"
+
+if (isset($_GET['appApproval'])) {
+    $appApproval = htmlspecialchars($_GET['appApproval']);
+}
+
+if (isset($_GET['appInteractionId'])) {
+    $appInteractionId = $_GET['appInteractionId'];
+}
+
+//connect to the database
+// mysql --host=35.201.215.85 --database="appReview" --user=201CTeam6 --password=NoPassword
 $user = "201CTeam6";
 $password = "NoPassword";
 $mysqli = mysqli_connect("35.201.215.85", $user, $password, "appReview");
@@ -22,6 +35,8 @@ if (mysqli_connect_errno($mysqli)) {
     echo "Failed to connect to MySQL: " . mysqli_connect_error();
     die;
 }
+
+
 //log in
 function pwdV($mysqli)
 {
@@ -34,7 +49,7 @@ function pwdV($mysqli)
         $pwd = $_SESSION['pass'];
     }
     if (isset($username) && isset($pwd)) {
-        $res = mysqli_query($mysqli, "SELECT user, password, division from users order by user");
+        $res = mysqli_query($mysqli, "SELECT user, password, division, admin, moderator from users order by user");
         if (!$res) {
             echo "error on sql - $mysqli->error";
         } else {
@@ -42,7 +57,7 @@ function pwdV($mysqli)
             while ($row = mysqli_fetch_assoc($res)) {
                 if ($username === $row['user']) {
                     if (password_verify($pwd, $row['password'])) {
-                        if ($row['division'] < 3) {
+                        if ($row['admin']==1) {
                             return 5;
                         } else {
                             return 0;
@@ -61,6 +76,8 @@ function pwdV($mysqli)
     return 3;
 }
 $pV = pwdV($mysqli);
+
+
 // Sign up
 function signV($mysqli)
 {
@@ -95,6 +112,8 @@ function signV($mysqli)
     return 3;
 }
 $sV = signV($mysqli);
+
+
 // submitting new apps
 function addApp($mysqli)
 {
@@ -116,7 +135,29 @@ function addApp($mysqli)
     }
 }
 $addApp = addApp($mysqli);
-//SEARCHING FUNCTION
+
+
+
+//           ADMIN PAGE ABILITIES HERE     
+// return query for current UNAPPROVED apps for admin page 
+function getAppsToApprove($mysqli) {
+    $res = mysqli_query($mysqli, "SELECT * from apps WHERE approved=0;"); 
+    return $res; 
+}
+$appsToApprove = getAppsToApprove($mysqli); 
+
+
+if ($appApproval == "delete") { 
+    $res = mysqli_query($mysqli, "DELETE FROM apps WHERE appId='$appInteractionId';"); 
+    $appApproval = ""; 
+} else if ($appApproval == "approve") {
+    $res = mysqli_query($mysqli, "UPDATE apps SET approved=1 WHERE appId='$appInteractionId'");
+    $appApproval = ""; 
+}
+
+
+
+//                                     SEARCHING FUNCTIONS
 if (isset($_POST['searchQuery'])) {
     $_SESSION['searchQuery'] = htmlspecialchars($_POST['searchQuery']);
 }
@@ -128,20 +169,18 @@ function search($mysqli, $searchQuery, $sortBy)
 {
     if (strcasecmp($searchQuery, "all") == 0) { // so we can see all
         if ($sortBy != "") {
-            $res = mysqli_query($mysqli, "SELECT * from apps ORDER BY $sortBy;");
+            $res = mysqli_query($mysqli, "SELECT * from apps WHERE approved=1 ORDER BY $sortBy;");
         } else {
-            $res = mysqli_query($mysqli, "SELECT * from apps;");
+            $res = mysqli_query($mysqli, "SELECT * from apps WHERE approved=1;");
         }
-
         return $res;
     }
     // implement filter deal here too ...
     if ($sortBy != "") {
-        $res = mysqli_query($mysqli, "SELECT * from apps WHERE appName LIKE '%$searchQuery%' OR category LIKE '%$searchQuery%' ORDER BY $sortBy;");
+        $res = mysqli_query($mysqli, "SELECT * from apps WHERE appName LIKE '%$searchQuery%' OR category LIKE '%$searchQuery%' AND approved=1 ORDER BY $sortBy;");
     } else {
-        $res = mysqli_query($mysqli, "SELECT * from apps WHERE appName LIKE '%$searchQuery%' OR category LIKE '%$searchQuery%';");
+        $res = mysqli_query($mysqli, "SELECT * from apps WHERE appName LIKE '%$searchQuery%' OR category LIKE '%$searchQuery%' AND approved=1;");
     }
-
     return $res;
 }
 $sortBy = "";
@@ -149,6 +188,7 @@ if (isset($_POST['sort'])) {
     $sortBy = $_POST['sort'];
 }
 $searchResult = search($mysqli, $searchQuery, $sortBy);
+
 
 
 // html doc starts below
@@ -200,17 +240,11 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
                         <?php
                     }
                     ?>
-                        <a class="nav-link" href="index.php?action=admin">adminPage</a>
+                        <a class="nav-link" href="index.php?action=admin">Approve Apps</a>
                     </li>
                 <?php
-            } else {
+                } 
                 ?>
-                    <li class="nav-item">
-                        <a class="nav-link" href="https://www.youtube.com/">Youtube</a>
-                    </li>
-                <?php
-            }
-            ?>
 
                 <?php if ($action == "submitApp") { ?>
                     <li class="nav-item active">
@@ -295,16 +329,13 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
             <form method='post' action="<?php print $_SERVER['PHP_SELF']; ?>?action=signup">
                 <div class="loginForm">
                     <div>
-                        <label for="usr">Username: </label>
-                        <input class="form-control" type="text" name="usr">
+                        <input class="form-control" placeholder="User name" type="text" name="usr">
                     </div>
                     <div>
-                        <label for="pwd1">Password: </label>
-                        <input class="form-control" type="password" name="pwd1">
+                        <input class="form-control" placeholder="Password" type="password" name="pwd1">
                     </div>
                     <div>
-                        <label for="pwd2">Verify Password: </label>
-                        <input class="form-control" type="password" name="pwd2">
+                        <input class="form-control" placeholder="Confirm password" type="password" name="pwd2">
                     </div>
                     <p class="loginAlert">
                         <?php
@@ -336,41 +367,55 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
     ?>
         <div class="container">
             <h2>Welcome, Admin!</h2>
-            <p>Apps to approve: </p>
-            <div class="card" style="width: 18rem;">
-                <img class="card-img-top" src="images/logo.png" alt="Card image cap">
-                <div class="card-body">
-                    <h5 class="card-title">Test I</h5>
-                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">Categary: </li>
-                    <li class="list-group-item">Description: </li>
-                </ul>
-                <div class="card-body">
-                    <a href="#" class="btn btn-primary">DENY</a>
-                    <a href="#" class="btn btn-primary">APPROVE</a>
-                </div>
+            <h5>Apps to approve: </h5>
+                <?php
+                $_SESSION['currentApp'] = ""; 
+                $appsListed = 0; 
+                while ($row = mysqli_fetch_assoc($appsToApprove)) {
+                    if ($appsListed == 0) {?>
+                    <div class="row">
+                    <?php
+                    }
+                    $appsListed = $appsListed + 1;
+                ?>
+                    <div class="col-sm-4">
+                        <div class="card" style="width: 12rem;">
+                            <img class="card-img-top" src="images/Star-icon.png" alt="Card image cap">
+                            <div class="card-body">
+                                <h5 class="card-title"></h5>
+                                <p class="card-text"></p>
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"></li>
+                                <li class="list-group-item"><strong>Category:</strong>
+                                <p class="card-text"><?php print $row['category'];?></p>
+                                </li>
+                                <li class="list-group-item">
+                                <strong>Description:</strong>
+                                <p class="card-text"><?php print $row['appDescription'];?></p>
+                                </li>
+                                <li class="list-group-item"><strong>$<?php print $row['price'];?></strong></li>
+                            </ul>
+                            <div class="card-body">
+                            <span>
+                                <!-- reference to php function that deletes... -->
+                                <a href="index.php?appApproval=delete&action=admin&appInteractionId=<?php print $row['appId'] ?>" class="btn btn-danger">DENY</a>
+                                <a href="index.php?appApproval=approve&action=admin&appInteractionId=<?php print $row['appId'] ?>" class="btn btn-primary">APPROVE</a>
+                            </span>
+                            </div>
+                        </div>
+                    </div>
+                    <?php
+                if ($appsListed == 3) { ?>
+                    </div>
+                    <?php
+                    $appsListed = 0; 
+                }
+            } ?>
             </div>
-            <br><br>
-            <div class="card" style="width: 18rem;">
-                <img class="card-img-top" src="images/testLogo.jpg" alt="Card image cap">
-                <div class="card-body">
-                    <h5 class="card-title">Test II</h5>
-                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">Categary: </li>
-                    <li class="list-group-item">Description: </li>
-                </ul>
-                <div class="card-body">
-                    <a href="#" class="btn btn-primary">DENY</a>
-                    <a href="#" class="btn btn-primary">APPROVE</a>
-                </div>
-            </div>
-        </div>
-    <?php
 
+            
+            <?php 
 } else if ($action == "submitApp" && $addApp != 0) {
     // APP REQUEST FORM
     ?>
@@ -378,23 +423,19 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
         <h5>Complete the form below to submit a new app and we'll see about approving it.</h5>
 
         <form method='post' action="<?php print $_SERVER['PHP_SELF']; ?>?action=submitApp">
-            <div class="align-items-center">
+            <div class="align-center">
                 <div class="submitAppForm">
                     <div class="col-md-4 mb-3">
-                        <label for="appName">App name: </label>
-                        <input type="text" name="appName">
+                        <input type="text" placeholder="App name" name="appName">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="category">Category: </label>
-                        <input type="text" name="category">
+                        <input type="text" placeholder="Category" name="category">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="appDescription">A short description: </label>
-                        <input type="text" name="appDescription">
+                        <input type="text" placeholder="A short description" name="appDescription">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="price">Price: </label>
-                        <input size="6" type="number" step=".01" name="price">
+                        <input size="6"  placeholder="Price" type="number" step=".01" name="price">
                     </div>
                     <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Submit proposed app</button>
                 </div>
@@ -412,6 +453,57 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
 
         </div>
     <?php
+
+} else if ($action == "appPage") {
+    $res = mysqli_query($mysqli, "SELECT * from apps WHERE appId=$appInteractionId;"); 
+    while ($row = mysqli_fetch_assoc($res)) {?>
+        
+              <div class="row">
+                  <div class="col-md-6 pull-left">
+                      <h1 style="float: left;"><?php print $row['appName'];?></h1>
+                  </div>
+                  <div class="col-md-6 pull-right">
+                      <h2><button class="btn btn-success btn-large">$<?php print $row['price'];?></button></h2>
+                  </div>
+              </div>
+
+              <div class="row">
+                <div class="pull-left">
+                  <img src="images/Star-icon.png" class="img-thumbnail" style="height: 160px; width: 160px;">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 container-fluid">
+                  <img src="images/star_wars_endor.png" style="height: 400px; width: 800px;">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                    <h4>Some description bois</h4>
+                <p><?php print $row['appDescription'];?></p>
+                </div>
+                <div class="col-md-6">
+                    <h4><?php print $row['category'];?></h4>
+                    <h4>Developers</h4>
+                    <h4>Platforms</h4>
+                    <h4>Versions</h4>
+                </div>
+                
+              </div>
+
+              <div class="container-fluid">
+                <h2>Reviews</h2>
+                <ul class="list-group">
+
+                <li class="list-group-item">User69 gave 2 stars. --<em>"This app sucks ass man, don't do it ... okay do it"</em></li>
+
+                </ul>
+              </div>
+        <?php
+    }
+
 } else if ($searchQuery != "") {
     // Handle normal searches/displaying apps
     ?>
@@ -459,9 +551,9 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
                                 <h4><?php print "{$row['appDescription']}" ?></h4>
                             </span>
                             <span style="float:right;">
-                                <h3><?php print "{$row['category']}" ?></h3>
-                                <h3><?php print "{$row['price']}" ?></h3>
-                                <h3><a class="btn btn-primary" href="https://www.youtube.com/" role="button">More Details</a></h3>
+                                <h4><?php print "{$row['category']}" ?></h4>
+                                <h3>$<?php print "{$row['price']}" ?></h3>
+                                <h3><a class="btn btn-primary" href="index.php?action=appPage&appInteractionId=<?php echo $row['appId'] ?>" role="button">More Details</a></h3>
                             </span>
                         </div>
 

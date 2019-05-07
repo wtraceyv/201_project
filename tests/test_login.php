@@ -10,40 +10,44 @@ if (mysqli_connect_errno($mysqli)) {
     die;
 }
 //log in
-function pwdV($mysqli)
+function pwdV($mysqli, $username, $pwd)
 {
-    if (isset($_POST['user']) && isset($_POST['pass'])) {
-        $_SESSION['user'] = $_POST['user'];
-        $_SESSION['pass'] = $_POST['pass'];
-    }
-    if (isset($_SESSION['user']) && isset($_SESSION['pass'])) {
-        $username = $_SESSION['user'];
-        $pwd = $_SESSION['pass'];
-    }
-    if (isset($username) && isset($pwd)) {
-        $res = mysqli_query($mysqli, "SELECT user, password from users order by user");
-        if (!$res) {
-            echo "error on sql - $mysqli->error";
-        } else {
-            $f = true;
-            while ($row = mysqli_fetch_assoc($res)) {
-                if ($username === $row['user']) {
-                    if (password_verify($pwd, $row['password'])) {
-                        return 0;
-                    } else {
-                        return 1;
-                    }
-                    $f = false;
+
+    $res = mysqli_query($mysqli, "SELECT user, password from users order by user");
+    if (!$res) {
+        echo "error on sql - $mysqli->error";
+    } else {
+        $f = true;
+        while ($row = mysqli_fetch_assoc($res)) {
+            if ($username === $row['user']) {
+                if (password_verify($pwd, $row['password'])) {
+                    return 0;
+                } else {
+                    return 1;
                 }
-            }
-            if ($f) {
-                return 2;
+                $f = false;
             }
         }
+        if ($f) {
+            return 2;
+        }
     }
+
     return 3;
 }
-$pV = pwdV($mysqli);
+
+if (isset($_POST['user']) && isset($_POST['pass'])) {
+    $_SESSION['user'] = $_POST['user'];
+    $_SESSION['pass'] = $_POST['pass'];
+}
+if (isset($_SESSION['user']) && isset($_SESSION['pass'])) {
+    $username = $_SESSION['user'];
+    $pwd = $_SESSION['pass'];
+}
+$pV = 3;
+if (isset($username) && isset($pwd)) {
+    $pV = pwdV($mysqli, $username, $pwd);
+}
 ?>
 <!doctype html>
 <html>
@@ -63,13 +67,15 @@ $pV = pwdV($mysqli);
                 echo 'The Password is invalid!';
             } else if ($pV == 2) {
                 echo 'The Username are invalid!';
+            } else if ($pV == 0) {
+                echo 'Login successfully';
             }
             ?>
         </p>
         <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Log in</button>
 
     </form>
-    <p>If no additional message displayed, you successfully logged in</p>
+
 </body>
 
 </html>

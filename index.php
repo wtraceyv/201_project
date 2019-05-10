@@ -49,7 +49,7 @@ function pwdV($mysqli)
         $pwd = $_SESSION['pass'];
     }
     if (isset($username) && isset($pwd)) {
-        $res = mysqli_query($mysqli, "SELECT user, password, division, admin, moderator from users order by user");
+        $res = mysqli_query($mysqli, "SELECT user, password, division from users order by user");
         if (!$res) {
             echo "error on sql - $mysqli->error";
         } else {
@@ -57,7 +57,7 @@ function pwdV($mysqli)
             while ($row = mysqli_fetch_assoc($res)) {
                 if ($username === $row['user']) {
                     if (password_verify($pwd, $row['password'])) {
-                        if ($row['admin']==1) {
+                        if ($row['division']==1) {
                             return 5;
                         } else {
                             return 0;

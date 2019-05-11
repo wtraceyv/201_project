@@ -9,72 +9,105 @@ if (mysqli_connect_errno($mysqli)) {
     echo "Failed to connect to MySQL: " . mysqli_connect_error();
     die;
 }
-//log in
-function pwdV($mysqli, $username, $pwd)
-{
 
-    $res = mysqli_query($mysqli, "SELECT user, password from users order by user");
-    if (!$res) {
-        echo "error on sql - $mysqli->error";
-    } else {
-        $f = true;
-        while ($row = mysqli_fetch_assoc($res)) {
-            if ($username === $row['user']) {
-                if (password_verify($pwd, $row['password'])) {
-                    return 0;
-                } else {
-                    return 1;
+
+//log in
+function pwdV($mysqli, $user, $pass)
+{
+    
+        $res = mysqli_query($mysqli, "SELECT user, password, division, admin, moderator from users order by user");
+        if (!$res) {
+            echo "error on sql - $mysqli->error";
+        } else {
+            $f = true;
+            while ($row = mysqli_fetch_assoc($res)) {
+                if ($user === $row['user']) {
+                    if (password_verify($pass, $row['password'])) {
+                        if ($row['admin']==1) {
+                            return 5;
+                        } else if ($row['moderator']==1) {
+                            return 4;
+                        } else {
+                            return 0;
+                        }
+                    } else {
+                        return 1;
+                    }
+                    $f = false;
                 }
-                $f = false;
+            }
+            if ($f) {
+                return 2;
             }
         }
-        if ($f) {
-            return 2;
-        }
-    }
-
+    
     return 3;
 }
-
-if (isset($_POST['user']) && isset($_POST['pass'])) {
-    $_SESSION['user'] = $_POST['user'];
-    $_SESSION['pass'] = $_POST['pass'];
-}
-if (isset($_SESSION['user']) && isset($_SESSION['pass'])) {
-    $username = $_SESSION['user'];
-    $pwd = $_SESSION['pass'];
-}
-$pV = 3;
-if (isset($username) && isset($pwd)) {
-    $pV = pwdV($mysqli, $username, $pwd);
-}
 ?>
+
 <!doctype html>
 <html>
 
 <body>
-    <form method='post' action="<?php print $_SERVER['PHP_SELF']; ?>">
+    <!-- print buttons according to whether tests make sense or not --> 
+    <?php
+        // set some example inputs ...
+        // good login example (expect 0): 
+        $user1 = "test"; 
+        $pass1 = "test"; 
+        // good user, bad pass (expect 1): 
+        $user2 = "test"; 
+        $pass2 = "bluhbluhsdf"; 
+        // bad user (expect 2):
+        $user3 = "dingdongbingbong"; 
+        $pass3 = "test"; 
+        // both bad (expect 2):  
+        $user4 = "why me"; 
+        $pass4 = "weiufnj"; 
 
-        <label for="user">Username: </label>
-        <input class="form-control" type="text" name="user">
-
-        <label for="pass">Password: </label>
-        <input class="form-control" type="password" name="pass">
-
-        <p>
-            <?php
-            if ($pV == 1) {
-                echo 'The Password is invalid!';
-            } else if ($pV == 2) {
-                echo 'The Username are invalid!';
-            } else if ($pV == 0) {
-                echo 'Login successfully';
-            }
+        
+        if (pwdV($mysqli, $user1, $pass1) === 5) {
             ?>
-        </p>
-        <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Log in</button>
+                <button type="button" class="btn btn-success btn-block">Good user and pass</button>
+            <?php
+        } else {
+            ?>
+                <button type="button" class="btn btn-danger btn-block">Good user and pass</button>
+            <?php
+        }
 
-    </form>
+        if (pwdV($mysqli, $user2, $pass2) === 1) {
+            ?>
+                <button type="button" class="btn btn-success btn-block">Bad pass</button>
+            <?php
+        } else {
+            ?>
+                <button type="button" class="btn btn-danger btn-block">Bad pass</button>
+            <?php
+        }
+
+        if (pwdV($mysqli, $user3, $pass3) === 2) {
+            ?>
+                <button type="button" class="btn btn-success btn-block">Bad user</button>
+            <?php
+        } else {
+            ?>
+                <button type="button" class="btn btn-danger btn-block">Bad user</button>
+            <?php
+        }
+
+    ?>
+
+
+
+    <!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 </body>
 

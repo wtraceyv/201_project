@@ -157,6 +157,11 @@ if (isset($_GET['comment'])) {
     }
 }
 
+if (isset($_GET['removeId'])) {
+    $commentId = $_GET['removeId'];
+    mysqli_query($mysqli, "DELETE FROM ratings WHERE ratingId = $commentId");
+}
+
 
 
 //           ADMIN PAGE ABILITIES HERE     
@@ -538,7 +543,7 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
                         <li class="list-group-item"><?php echo $row['user']; ?> gave <?php echo $row['rating']; ?> stars. --<em>"<?php echo $row['ratingComment']; ?>"</em>
                             <?php
                             if ($pV == 5 || $pV == 4) { ?>
-                                <button class="btn btn-danger">Remove</button>
+                                <a class="btn btn-danger" href="<?php print $_SERVER['PHP_SELF']; ?>?action=appPage&appInteractionId=<?php print $appInteractionId; ?>&removeId=<?php echo $row['ratingId'];?>">Remove</a>
                             <?php
                         }
                     }

@@ -2,8 +2,8 @@
 session_start();
 
 $action = "";
-$appApproval = ""; 
-$appInteractionId = -1; 
+$appApproval = "";
+$appInteractionId = -1;
 
 if (isset($_GET['action'])) {
     $action = htmlspecialchars($_GET['action']);
@@ -57,9 +57,9 @@ function pwdV($mysqli)
             while ($row = mysqli_fetch_assoc($res)) {
                 if ($username === $row['user']) {
                     if (password_verify($pwd, $row['password'])) {
-                        if ($row['division']==1) {
+                        if ($row['division'] == 1) {
                             return 5;
-                        } else if ($row['division']==2) {
+                        } else if ($row['division'] == 2) {
                             return 4;
                         } else {
                             return 0;
@@ -140,43 +140,42 @@ function addApp($mysqli)
 $addApp = addApp($mysqli);
 
 // adding a comment to an app 
-function addComment($mysqli) {
-    if (isset($_POST['newComment']) && isset($_POST['appInteractionId'])) {
-        $comment = $_POST['newComment']; 
-        $appInteractionId = $_POST['appInteractionId']; 
-        if ($pV == 0 || $pV == 5 || $pV == 4) {  // user commenting is known and logged in
-            $user = $_SESSION['usr']; 
-            $res = mysqli_query($mysqli, "INSERT INTO ratings (ratingComment, appId, user) VALUE ('$comment', '$appInteractionId', '$user');");
-            if (!$res) {
-                echo "error on sql - $mysqli->error";
-            }
-        } else {  // poster is anonymous
-            $res = mysqli_query($mysqli, "INSERT INTO ratings (ratingComment, appId) VALUE ('$comment', '$appInteractionId');");
-            if (!$res) {
-                echo "error on sql - $mysqli->error";
-            }
-        }   
+
+if (isset($_GET['comment'])) {
+    $comment = htmlspecialchars($_POST['newComment']);
+    $appInteractionId = $_GET['appInteractionId'];
+    if ($pV == 0 || $pV == 5 || $pV == 4) {  // user commenting is known and logged in
+        $user = $_SESSION['user'];
+        $res = mysqli_query($mysqli, "INSERT INTO ratings (rating, ratingComment, appId, user) VALUE (5, '$comment', '$appInteractionId', '$user');");
+        if (!$res) {
+            echo "error on sql - $mysqli->error";
+        }
+    } else {  // poster is anonymous
+        $res = mysqli_query($mysqli, "INSERT INTO ratings (rating, ratingComment, appId, user) VALUE (5, '$comment', '$appInteractionId', 'null');");
+        if (!$res) {
+            echo "error on sql - $mysqli->error";
+        }
     }
-    return 0; 
 }
-$addComment = addComment($mysqli); 
+
 
 
 //           ADMIN PAGE ABILITIES HERE     
 // return query for current UNAPPROVED apps for admin page 
-function getAppsToApprove($mysqli) {
-    $res = mysqli_query($mysqli, "SELECT * from apps WHERE approved=0;"); 
-    return $res; 
+function getAppsToApprove($mysqli)
+{
+    $res = mysqli_query($mysqli, "SELECT * from apps WHERE approved=0;");
+    return $res;
 }
-$appsToApprove = getAppsToApprove($mysqli); 
+$appsToApprove = getAppsToApprove($mysqli);
 
 
-if ($appApproval == "delete") { 
-    $res = mysqli_query($mysqli, "DELETE FROM apps WHERE appId='$appInteractionId';"); 
-    $appApproval = ""; 
+if ($appApproval == "delete") {
+    $res = mysqli_query($mysqli, "DELETE FROM apps WHERE appId='$appInteractionId';");
+    $appApproval = "";
 } else if ($appApproval == "approve") {
     $res = mysqli_query($mysqli, "UPDATE apps SET approved=1 WHERE appId='$appInteractionId'");
-    $appApproval = ""; 
+    $appApproval = "";
 }
 
 
@@ -267,8 +266,8 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
                         <a class="nav-link" href="index.php?action=admin">Approve Apps</a>
                     </li>
                 <?php
-                } 
-                ?>
+            }
+            ?>
 
                 <?php if ($action == "submitApp") { ?>
                     <li class="nav-item active">
@@ -392,15 +391,15 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
         <div class="container">
             <h2>Welcome, Admin!</h2>
             <h5>Apps to approve: </h5>
-                <?php
-                $_SESSION['currentApp'] = ""; 
-                $appsListed = 0; 
-                while ($row = mysqli_fetch_assoc($appsToApprove)) {
-                    if ($appsListed == 0) {?>
+            <?php
+            $_SESSION['currentApp'] = "";
+            $appsListed = 0;
+            while ($row = mysqli_fetch_assoc($appsToApprove)) {
+                if ($appsListed == 0) { ?>
                     <div class="row">
                     <?php
-                    }
-                    $appsListed = $appsListed + 1;
+                }
+                $appsListed = $appsListed + 1;
                 ?>
                     <div class="col-sm-4">
                         <div class="card" style="width: 12rem;">
@@ -412,34 +411,34 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item"></li>
                                 <li class="list-group-item"><strong>Category:</strong>
-                                <p class="card-text"><?php print $row['category'];?></p>
+                                    <p class="card-text"><?php print $row['category']; ?></p>
                                 </li>
                                 <li class="list-group-item">
-                                <strong>Description:</strong>
-                                <p class="card-text"><?php print $row['appDescription'];?></p>
+                                    <strong>Description:</strong>
+                                    <p class="card-text"><?php print $row['appDescription']; ?></p>
                                 </li>
-                                <li class="list-group-item"><strong>$<?php print $row['price'];?></strong></li>
+                                <li class="list-group-item"><strong>$<?php print $row['price']; ?></strong></li>
                             </ul>
                             <div class="card-body">
-                            <span>
-                                <!-- reference to php function that deletes... -->
-                                <a href="index.php?appApproval=delete&action=admin&appInteractionId=<?php print $row['appId'] ?>" class="btn btn-danger">DENY</a>
-                                <a href="index.php?appApproval=approve&action=admin&appInteractionId=<?php print $row['appId'] ?>" class="btn btn-primary">APPROVE</a>
-                            </span>
+                                <span>
+                                    <!-- reference to php function that deletes... -->
+                                    <a href="index.php?appApproval=delete&action=admin&appInteractionId=<?php print $row['appId'] ?>" class="btn btn-danger">DENY</a>
+                                    <a href="index.php?appApproval=approve&action=admin&appInteractionId=<?php print $row['appId'] ?>" class="btn btn-primary">APPROVE</a>
+                                </span>
                             </div>
                         </div>
                     </div>
                     <?php
-                if ($appsListed == 3) { ?>
+                    if ($appsListed == 3) { ?>
                     </div>
                     <?php
-                    $appsListed = 0; 
+                    $appsListed = 0;
                 }
             } ?>
-            </div>
+        </div>
 
-            
-            <?php 
+
+    <?php
 } else if ($action == "submitApp" && $addApp != 0) {
     // APP REQUEST FORM
     ?>
@@ -457,10 +456,10 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
                     </div>
                     <div class="col-md-4 mb-3">
                         <textarea placeholder="Description" name="appDescription">
-                        </textarea>
+                                </textarea>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <input size="6"  placeholder="Price" type="number" step=".01" name="price">
+                        <input size="6" placeholder="Price" type="number" step=".01" name="price">
                     </div>
                     <div class="col-md-4 mb-3">
                         <input type="text" placeholder="Developers" name="developers">
@@ -490,70 +489,69 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
     <?php
 
 } else if ($action == "appPage") {
-    $res = mysqli_query($mysqli, "SELECT * from apps WHERE appId=$appInteractionId;"); 
-    while ($row = mysqli_fetch_assoc($res)) {?>
-        
-              <div class="row">
-                  <div class="col-md-6 pull-left">
-                      <h1 style="float: left;"><?php print $row['appName'];?></h1>
-                  </div>
-                  <div class="col-md-6 pull-right">
-                      <h2><button class="btn btn-success btn-large">$<?php print $row['price'];?></button></h2>
-                  </div>
-              </div>
+    $res = mysqli_query($mysqli, "SELECT * from apps WHERE appId=$appInteractionId;");
+    while ($row = mysqli_fetch_assoc($res)) { ?>
 
-              <div class="row">
+            <div class="row">
+                <div class="col-md-6 pull-left">
+                    <h1 style="float: left;"><?php print $row['appName']; ?></h1>
+                </div>
+                <div class="col-md-6 pull-right">
+                    <h2><button class="btn btn-success btn-large">$<?php print $row['price']; ?></button></h2>
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="pull-left">
-                  <img src="images/Star-icon.png" class="img-thumbnail" style="height: 160px; width: 160px;">
+                    <img src="images/Star-icon.png" class="img-thumbnail" style="height: 160px; width: 160px;">
                 </div>
-              </div>
+            </div>
 
-              <div class="row">
+            <div class="row">
                 <div class="col-md-6 container-fluid">
-                  <img src="images/star_wars_endor.png" style="height: 400px; width: 800px;">
+                    <img src="images/star_wars_endor.png" style="height: 400px; width: 800px;">
                 </div>
-              </div>
+            </div>
 
-              <div class="row">
+            <div class="row">
                 <div class="col-md-6">
                     <h4>Description</h4>
-                <p><?php print $row['appDescription'];?></p>
+                    <p><?php print $row['appDescription']; ?></p>
                 </div>
                 <div class="col-md-6">
-                    <h4>Category: <?php print $row['category'];?></h4>
-                    <h4>Developers: <?php print $row['developers'];?></h4>
-                    <h4>Platforms: <?php print $row['platforms'];?></h4>
-                    <h4>Versions: <?php print $row['versions'];?></h4>
+                    <h4>Category: <?php print $row['category']; ?></h4>
+                    <h4>Developers: <?php print $row['developers']; ?></h4>
+                    <h4>Platforms: <?php print $row['platforms']; ?></h4>
+                    <h4>Versions: <?php print $row['versions']; ?></h4>
                 </div>
-                
-              </div>
 
-              <div class="container-fluid">
+            </div>
+
+            <div class="container-fluid">
                 <h2>Reviews</h2>
                 <!-- list comments -->
                 <ul class="list-group">
 
-                <li class="list-group-item">User69 gave 2 stars. --<em>"This app sucks ass man, don't do it ... okay do it"</em> 
-                <?php
-                    if ($pV == 5 || $pV == 4) {?>
-                        <button class="btn btn-danger">Remove</button>
-                    <?php 
+                    <li class="list-group-item">User69 gave 2 stars. --<em>"This app sucks ass man, don't do it ... okay do it"</em>
+                        <?php
+                        if ($pV == 5 || $pV == 4) { ?>
+                            <button class="btn btn-danger">Remove</button>
+                        <?php
                     }
-                ?>
-                </li>
+                    ?>
+                    </li>
 
                 </ul>
-               </div>
-                <!-- end comments list -->
-                <div class="container-fluid">
-                    <form method="post" action="<?php print $_SERVER['PHP_SELF']; ?>?action=appPage&appInteractionId=<?php print $appInteractionId; ?>">
+            </div>
+            <!-- end comments list -->
+            <div class="container-fluid">
+                <form method="post" action="<?php print $_SERVER['PHP_SELF']; ?>?action=appPage&appInteractionId=<?php print $appInteractionId; ?>&comment=add">
                     <textarea name="newComment" placeholder="Add comment"></textarea>
                     <button type="submit" class="btn btn-primary">Post Comment</button>
                 </form>
-                </div>
+            </div>
         <?php
     }
-
 } else if ($searchQuery != "") {
     // Handle normal searches/displaying apps
     ?>

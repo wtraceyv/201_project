@@ -59,6 +59,8 @@ function pwdV($mysqli)
                     if (password_verify($pwd, $row['password'])) {
                         if ($row['division']==1) {
                             return 5;
+                        } else if ($row['division']==2) {
+                            return 4;
                         } else {
                             return 0;
                         }
@@ -117,14 +119,15 @@ $sV = signV($mysqli);
 // submitting new apps
 function addApp($mysqli)
 {
-    if (isset($_POST['appName']) && isset($_POST['category']) && isset($_POST['appDescription']) && isset($_POST['price'])) {
+    if (isset($_POST['appName']) && isset($_POST['category']) && isset($_POST['appDescription']) && isset($_POST['price']) && isset($_POST['developers']) && isset($_POST['platforms']) && isset($_POST['versions'])) {
         $appName = $_POST['appName'];
         $category = $_POST['category'];
         $appDescription = $_POST['appDescription'];
         $price = $_POST['price'];
-        // put some sort of smart checking here
-        // skipping for now
-        $res = mysqli_query($mysqli, "INSERT INTO apps (appName, category, appDescription, price, approved) VALUE ('$appName', '$category', '$appDescription', '$price', false);");
+        $developers = $_POST['developers'];
+        $platforms = $_POST['platforms'];
+        $versions = $_POST['versions'];
+        $res = mysqli_query($mysqli, "INSERT INTO apps (appName, category, appDescription, price, approved, developers, platforms, versions) VALUE ('$appName', '$category', '$appDescription', '$price', false, '$developers', '$platforms', '$versions');");
         if (!$res) {
             echo "error on sql - $mysqli->error";
         }
@@ -136,6 +139,27 @@ function addApp($mysqli)
 }
 $addApp = addApp($mysqli);
 
+// adding a comment to an app 
+function addComment($mysqli) {
+    if (isset($_POST['newComment']) && isset($_POST['appInteractionId'])) {
+        $comment = $_POST['newComment']; 
+        $appInteractionId = $_POST['appInteractionId']; 
+        if ($pV == 0 || $pV == 5 || $pV == 4) {  // user commenting is known and logged in
+            $user = $_SESSION['usr']; 
+            $res = mysqli_query($mysqli, "INSERT INTO ratings (ratingComment, appId, user) VALUE ('$comment', '$appInteractionId', '$user');");
+            if (!$res) {
+                echo "error on sql - $mysqli->error";
+            }
+        } else {  // poster is anonymous
+            $res = mysqli_query($mysqli, "INSERT INTO ratings (ratingComment, appId) VALUE ('$comment', '$appInteractionId');");
+            if (!$res) {
+                echo "error on sql - $mysqli->error";
+            }
+        }   
+    }
+    return 0; 
+}
+$addComment = addComment($mysqli); 
 
 
 //           ADMIN PAGE ABILITIES HERE     
@@ -259,7 +283,7 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
         </div>
         <ul class="navbar-nav mr-auto">
             <?php
-            if ($pV == 0 || $pV == 5) {
+            if ($pV == 0 || $pV == 5 || $pV == 4) {
                 ?>
                 <li class="nav-item"><a class="nav-link" href="#">Current User: <?php echo $_SESSION['user']; ?></a></li>
                 <li class="nav-item"><a class="nav-link" href="index.php?action=logout"> Logout</a></li>
@@ -279,7 +303,7 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
 
     <!-- content below navbar -->
     <?php
-    if ($action == "login" && ($pV != 0 && $pV != 5)) {
+    if ($action == "login" && ($pV != 0 && $pV != 5 && $pV != 4)) {
         // login form 
         ?>
         <div class="container">
@@ -352,7 +376,7 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
 
         </div>
     <?php
-} else if ($action == "login" && ($pV == 0 || $pV == 5)) {
+} else if ($action == "login" && ($pV == 0 || $pV == 5 || $pV == 4)) {
     // successful login message
     ?>
         <div class="container">
@@ -419,12 +443,12 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
 } else if ($action == "submitApp" && $addApp != 0) {
     // APP REQUEST FORM
     ?>
-        <h1 class="words container-fluid">Welcome! We love taking new apps!</h1>
+        <h1 class="words">Welcome! We love taking new apps!</h1>
         <h5>Complete the form below to submit a new app and we'll see about approving it.</h5>
 
         <form method='post' action="<?php print $_SERVER['PHP_SELF']; ?>?action=submitApp">
             <div class="align-center">
-                <div class="submitAppForm">
+                <div class="submitAppForm form-group">
                     <div class="col-md-4 mb-3">
                         <input type="text" placeholder="App name" name="appName">
                     </div>
@@ -432,11 +456,22 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
                         <input type="text" placeholder="Category" name="category">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <input type="text" placeholder="A short description" name="appDescription">
+                        <textarea placeholder="Description" name="appDescription">
+                        </textarea>
                     </div>
                     <div class="col-md-4 mb-3">
                         <input size="6"  placeholder="Price" type="number" step=".01" name="price">
                     </div>
+                    <div class="col-md-4 mb-3">
+                        <input type="text" placeholder="Developers" name="developers">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <input type="text" placeholder="Available Platforms" name="platforms">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <input type="text" placeholder="Platform versions" name="versions">
+                    </div>
+
                     <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Submit proposed app</button>
                 </div>
             </div>
@@ -481,26 +516,41 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
 
               <div class="row">
                 <div class="col-md-6">
-                    <h4>Some description bois</h4>
+                    <h4>Description</h4>
                 <p><?php print $row['appDescription'];?></p>
                 </div>
                 <div class="col-md-6">
-                    <h4><?php print $row['category'];?></h4>
-                    <h4>Developers</h4>
-                    <h4>Platforms</h4>
-                    <h4>Versions</h4>
+                    <h4>Category: <?php print $row['category'];?></h4>
+                    <h4>Developers: <?php print $row['developers'];?></h4>
+                    <h4>Platforms: <?php print $row['platforms'];?></h4>
+                    <h4>Versions: <?php print $row['versions'];?></h4>
                 </div>
                 
               </div>
 
               <div class="container-fluid">
                 <h2>Reviews</h2>
+                <!-- list comments -->
                 <ul class="list-group">
 
-                <li class="list-group-item">User69 gave 2 stars. --<em>"This app sucks ass man, don't do it ... okay do it"</em></li>
+                <li class="list-group-item">User69 gave 2 stars. --<em>"This app sucks ass man, don't do it ... okay do it"</em> 
+                <?php
+                    if ($pV == 5 || $pV == 4) {?>
+                        <button class="btn btn-danger">Remove</button>
+                    <?php 
+                    }
+                ?>
+                </li>
 
                 </ul>
-              </div>
+               </div>
+                <!-- end comments list -->
+                <div class="container-fluid">
+                    <form method="post" action="<?php print $_SERVER['PHP_SELF']; ?>?action=appPage&appInteractionId=<?php print $appInteractionId; ?>">
+                    <textarea name="newComment" placeholder="Add comment"></textarea>
+                    <button type="submit" class="btn btn-primary">Post Comment</button>
+                </form>
+                </div>
         <?php
     }
 
@@ -551,7 +601,7 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
                                 <h4><?php print "{$row['appDescription']}" ?></h4>
                             </span>
                             <span style="float:right;">
-                                <h4><?php print "{$row['category']}" ?></h4>
+                                <h4>Category: <?php print "{$row['category']}" ?></h4>
                                 <h3>$<?php print "{$row['price']}" ?></h3>
                                 <h3><a class="btn btn-primary" href="index.php?action=appPage&appInteractionId=<?php echo $row['appId'] ?>" role="button">More Details</a></h3>
                             </span>
@@ -581,7 +631,6 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
                     <option value="appName">Name</option>
                     <option value="price">Price</option>
                     <option value="ratings">Ratings</option>
-                    <option value="downloads">Downloads</option>
                     <option value="category">Category</option>
                 </select>
 

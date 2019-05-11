@@ -143,7 +143,6 @@ $addApp = addApp($mysqli);
 
 if (isset($_GET['comment'])) {
     $comment = htmlspecialchars($_POST['newComment']);
-    $appInteractionId = $_GET['appInteractionId'];
     if ($pV == 0 || $pV == 5 || $pV == 4) {  // user commenting is known and logged in
         $user = $_SESSION['user'];
         $res = mysqli_query($mysqli, "INSERT INTO ratings (rating, ratingComment, appId, user) VALUE (5, '$comment', '$appInteractionId', '$user');");
@@ -456,7 +455,7 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
                     </div>
                     <div class="col-md-4 mb-3">
                         <textarea placeholder="Description" name="appDescription">
-                                </textarea>
+                                        </textarea>
                     </div>
                     <div class="col-md-4 mb-3">
                         <input size="6" placeholder="Price" type="number" step=".01" name="price">
@@ -531,12 +530,17 @@ $searchResult = search($mysqli, $searchQuery, $sortBy);
                 <h2>Reviews</h2>
                 <!-- list comments -->
                 <ul class="list-group">
+                    <?php
+                    $getComments = mysqli_query($mysqli, "SELECT * from ratings WHERE appId=$appInteractionId;");
+                    while ($row = mysqli_fetch_assoc($getComments)) {
+                        ?>
 
-                    <li class="list-group-item">User69 gave 2 stars. --<em>"This app sucks ass man, don't do it ... okay do it"</em>
-                        <?php
-                        if ($pV == 5 || $pV == 4) { ?>
-                            <button class="btn btn-danger">Remove</button>
-                        <?php
+                        <li class="list-group-item"><?php echo $row['user']; ?> gave <?php echo $row['rating']; ?> stars. --<em>"<?php echo $row['ratingComment']; ?>"</em>
+                            <?php
+                            if ($pV == 5 || $pV == 4) { ?>
+                                <button class="btn btn-danger">Remove</button>
+                            <?php
+                        }
                     }
                     ?>
                     </li>

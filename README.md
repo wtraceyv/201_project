@@ -2,6 +2,9 @@
 
 #### Here is where we store the code 
 
+### Find the full site on the server: 
+http://ceclnx01.cec.miamioh.edu/~lir25/cse201/201_project/index.php
+
 ##### css/
 Extra non-bootstrap CSS files for overriding theme colors, etc. 
 

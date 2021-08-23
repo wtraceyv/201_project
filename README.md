@@ -1,9 +1,4 @@
-# hi there
-
-#### Here is where we store the code 
-
-### Find the full site on the server: 
-http://ceclnx01.cec.miamioh.edu/~lir25/cse201/201_project/index.php
+Our PHP site for CSE 201; I did not have well-rounded web dev skills at this time.
 
 ##### css/
 Extra non-bootstrap CSS files for overriding theme colors, etc. 
